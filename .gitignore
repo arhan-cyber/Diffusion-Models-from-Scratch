@@ -17,3 +17,6 @@ data/MNIST/raw/train-labels-idx1-ubyte.gz
 Week-2/__pycache__/blocks.cpython-314.pyc
 Week-2/__pycache__/dataset.cpython-314.pyc
 Week-2/__pycache__/model.cpython-314.pyc
+Week-2/__pycache__/blocks.cpython-312.pyc
+Week-2/__pycache__/dataset.cpython-312.pyc
+Week-2/__pycache__/model.cpython-312.pyc
