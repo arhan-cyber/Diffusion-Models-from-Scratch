@@ -1,7 +1,7 @@
-# Seasons of Code 2026
-## Diffusion Models from Scratch: Building Your Own Image Generator
+# Diffusion Models from Scratch: Building Your Own Image Generator
+## Seasons of Code
 
-**Duration:** 8 weeks | **Time Commitment:** 8–12 hours/week | **Cohort Size:** 6 mentees
+**Duration:** 8 weeks 
 **Prerequisites:** Python proficiency, basic ML (sklearn-level), comfort with NumPy and linear algebra
 
 ---
@@ -16,9 +16,9 @@ By the end of this program, each mentee will have built — entirely from scratc
 2. A trained diffusion model on a custom dataset of their choice
 3. An interactive Gradio demo deployed on Hugging Face Spaces
 4. A technical blog post (Medium / personal site) explaining their implementation
-5. A 5-minute final presentation video
+5. A 5-minute final presentation
 
-### What Mentees Will Learn
+### What You Will Learn
 
 - PyTorch fluency: tensors, autograd, training loops, GPU usage
 - Convolutional architectures and the UNet design pattern
@@ -28,19 +28,6 @@ By the end of this program, each mentee will have built — entirely from scratc
 - Deployment, demo-building, and technical writing
 
 ---
-
-## Cohort Logistics (6 Mentees)
-
-### Communication
-- **Discord/Slack server** with channels: `#general`, `#help`, `#showcase`, `#resources`
-- **Weekly group call** (1 hour, Saturdays recommended) — concept review + Q&A
-- **Office hours** (1 hour midweek) — debugging and 1:1 help
-- **Pair-up system:** Pair mentees for weekly code reviews (rotate pairings every 2 weeks)
-
-### Tracking & Accountability
-- Each mentee maintains a **public GitHub repo** from Week 1 with weekly commits
-- Weekly **progress check-in form** (5 questions, ~5 minutes to fill)
-- Mid-program (Week 4) and final (Week 8) **demo days** where each mentee presents
 
 ### Compute Resources
 - **Primary:** Google Colab free tier (T4 GPU) — sufficient for all weeks
@@ -52,16 +39,11 @@ By the end of this program, each mentee will have built — entirely from scratc
 
 ## Week 0: Pre-Program Setup (Optional, Sent 1 Week Before Start)
 
-Send mentees a setup email containing:
-
-- GitHub account creation + repo template link
+- GitHub account creation + fork this repo
 - Colab + Kaggle account setup
 - Hugging Face account creation
-- Pre-program reading: 3Blue1Brown's "But what is a neural network?" series
+- Pre-program reading: 3Blue1Brown's "But what is a neural network?" series(optional)
 - Pre-program coding: Implement linear regression with gradient descent in NumPy
-- Discord/Slack invite
-
-This filters serious mentees and ensures everyone starts at the same baseline.
 
 ---
 
@@ -74,19 +56,6 @@ This filters serious mentees and ensures everyone starts at the same baseline.
 - Write a training loop from scratch (no `model.fit()`)
 - Train a simple feedforward network on MNIST
 - Move computations to GPU
-
-### Resources
-- **Reading:** PyTorch official "60 Minute Blitz" tutorial
-- **Video:** Andrej Karpathy's "The spelled-out intro to neural networks and backpropagation" (first 1 hour)
-- **Reference:** PyTorch documentation for `nn.Module`, `optim`, `DataLoader`
-
-### Coding Deliverable
-Build a feedforward neural network that classifies MNIST digits with at least 97% test accuracy. Code must include:
-- Custom `Dataset` class
-- Manual training loop with logging
-- Train/val/test split
-- Saving and loading model checkpoints
-- A short README.md explaining design choices
 
 ### Checkpoint Question
 "Walk me through what `loss.backward()` does internally. What gets modified, and where do gradients live?"
@@ -113,17 +82,6 @@ Build a feedforward neural network that classifies MNIST digits with at least 97
 - Build a UNet from scratch — encoder, bottleneck, decoder
 - Train a UNet on an image-to-image task (denoising)
 
-### Resources
-- **Reading:** "U-Net: Convolutional Networks for Biomedical Image Segmentation" (Ronneberger et al., 2015) — the original paper
-- **Video:** Stanford CS231n Lecture 5 (Convolutional Neural Networks)
-- **Blog:** "An Introduction to Different Types of Convolutions in Deep Learning" by Paul-Louis Pröve
-
-### Coding Deliverable
-Implement a UNet from scratch in PyTorch. Train it as a denoising autoencoder: take MNIST or CIFAR-10 images, add Gaussian noise, train the UNet to reconstruct clean images. Code must include:
-- Modular `DoubleConv`, `Down`, and `Up` blocks
-- Configurable depth and channel count
-- Visualization of denoised outputs every few epochs
-
 ### Checkpoint Question
 "Why are skip connections in a UNet important? What happens to the gradients and information flow without them?"
 
@@ -148,18 +106,6 @@ Implement a UNet from scratch in PyTorch. Train it as a denoising autoencoder: t
 - Implement linear and cosine noise schedules
 - Visualize the noising process at every timestep
 - Build the dataset pipeline that produces (noisy_image, timestep, noise) tuples
-
-### Resources
-- **Blog (essential):** "What are Diffusion Models?" by Lilian Weng — read sections 1 and 2
-- **Paper:** "Denoising Diffusion Probabilistic Models" (Ho et al., 2020) — focus on Sections 1–3
-- **Video:** "Diffusion Models | Paper Explanation | Math Explained" by Outlier (YouTube)
-
-### Coding Deliverable
-Implement the forward diffusion process. Code must include:
-- A `NoiseScheduler` class supporting linear and cosine schedules
-- The closed-form `q(x_t | x_0)` sampling (using the reparameterization trick)
-- A visualization script that takes one image and shows it noised at t = 0, 100, 250, 500, 750, 999
-- Unit tests verifying that `x_T` is approximately pure Gaussian noise
 
 ### Checkpoint Question
 "Explain why we can sample `x_t` directly from `x_0` in one step instead of iterating t times. What's the math behind that, and why does it matter for training?"
@@ -186,19 +132,6 @@ Implement the forward diffusion process. Code must include:
 - Train a full DDPM on MNIST or Fashion-MNIST
 - Implement the iterative sampling loop
 
-### Resources
-- **Blog:** "The Annotated Diffusion Model" by Hugging Face (this is gold — read carefully)
-- **Paper:** DDPM paper, Sections 3.2 and 4
-- **Code reference:** lucidrains' `denoising-diffusion-pytorch` repo (read, don't copy)
-
-### Coding Deliverable
-Train a working DDPM on MNIST. Code must include:
-- Sinusoidal timestep embeddings injected into UNet blocks
-- A training loop that samples random timesteps and predicts noise
-- A sampling function that iteratively denoises from pure noise
-- Generated samples saved every N epochs as a grid image
-- A README with training curves and sample outputs
-
 ### Checkpoint Question
 "During training we predict noise, but during sampling we use that noise prediction to estimate the slightly-denoised image. Walk me through the equation for one reverse step."
 
@@ -214,7 +147,7 @@ Train a working DDPM on MNIST. Code must include:
 - Insufficient training time — DDPM needs more epochs than typical classification tasks
 
 ### Mid-Program Demo Day
-At the end of Week 4, host a 90-minute demo session where each mentee shares:
+At the end of Week 4, a presentation is to be shared containing:
 - Their best generated samples
 - Their biggest debugging challenge of the past 4 weeks
 - One thing they want to improve in the second half
@@ -229,18 +162,6 @@ At the end of Week 4, host a 90-minute demo session where each mentee shares:
 - Understand the difference between stochastic (DDPM) and deterministic (DDIM) sampling
 - Implement DDIM sampling on top of a pre-trained DDPM
 - Benchmark sampling speed vs. quality trade-offs
-
-### Resources
-- **Paper:** "Denoising Diffusion Implicit Models" (Song et al., 2021) — Sections 1–4
-- **Blog:** Lilian Weng's diffusion post, the DDIM section
-- **Code reference:** Hugging Face Diffusers library's `DDIMScheduler` source
-
-### Coding Deliverable
-Add DDIM sampling to the existing model from Week 4. Code must include:
-- A `DDIMScheduler` class with configurable `eta` parameter
-- Side-by-side comparison: DDPM at 1000 steps vs. DDIM at 10, 25, 50, 100 steps
-- Wall-clock timing for each
-- A short markdown report with findings
 
 ### Checkpoint Question
 "DDIM uses the same trained model as DDPM but generates samples faster. What's the key insight that makes this possible? What does `eta` control?"
@@ -265,19 +186,6 @@ Add DDIM sampling to the existing model from Week 4. Code must include:
 - Implement class-conditional generation (label embeddings)
 - Understand and implement classifier-free guidance (CFG)
 - Build the foundation for text-to-image (using CLIP)
-
-### Resources
-- **Paper:** "Classifier-Free Diffusion Guidance" (Ho & Salimans, 2022)
-- **Blog:** "Classifier-Free Guidance: From Bayes' Theorem to Conditional Image Generation" by Sander Dieleman
-- **Reference:** Stable Diffusion paper sections on conditioning (for context)
-
-### Coding Deliverable
-Extend the model to support conditional generation. Code must include:
-- Class label embeddings concatenated/added to timestep embeddings
-- Random label dropout during training (10–20%) to enable CFG
-- CFG sampling with adjustable guidance scale `w`
-- Sample grids showing the same noise → different classes
-- Sample grids showing the same class with varying `w` (1, 3, 5, 10)
 
 ### Checkpoint Question
 "Classifier-free guidance interpolates between conditional and unconditional predictions. Why does increasing the guidance scale improve sample quality but reduce diversity?"
@@ -312,14 +220,6 @@ Extend the model to support conditional generation. Code must include:
 - **Indian art / textile patterns** (scraped from open sources — culturally interesting)
 - **Mentee's own choice** (must be approved by mentor — minimum 500 images)
 
-### Coding Deliverable
-A full training run on the custom dataset producing usable samples. Code must include:
-- A clean data preprocessing pipeline (resize, normalize, augment)
-- A training script with logging (Weights & Biases recommended, free tier)
-- At least 100 epochs of training (or until convergence)
-- A samples folder with generations at different training milestones
-- A `model.pt` checkpoint pushed to Hugging Face Hub
-
 ### Checkpoint Question
 "What was the hardest decision you made about your dataset and architecture this week? What would you change if you had 10x the compute?"
 
@@ -346,43 +246,22 @@ A full training run on the custom dataset producing usable samples. Code must in
 - Communicate technical work through writing
 - Present technical work to an audience
 
-### Resources
-- **Tutorial:** Gradio Quickstart
-- **Tutorial:** Hugging Face Spaces deployment guide
-- **Reading:** "How to write a great technical blog post" — pick any 2–3 examples from distill.pub
-
-### Coding Deliverable
+### Coding Deliverable(Any 2 out of which Gradio Demo is compulsory)
 
 A complete, polished portfolio piece consisting of:
 
 1. **Gradio demo** with at least: a "Generate" button, class/condition selector (if applicable), guidance scale slider, number of sampling steps slider, and seed input for reproducibility
 2. **Public Hugging Face Space** with the demo deployed and accessible
 3. **Technical blog post** (1500–2500 words) covering: motivation, math intuition (with one or two equations), architecture choices, training process, results gallery, lessons learned and what they'd do differently
-4. **Polished GitHub README** with project description, demo GIF, installation instructions, training instructions, and credits/references
-5. **Final presentation video** (5 minutes, recorded) walking through the project
-
-### Final Demo Day
-Host a 2-hour final showcase where each mentee:
-- Presents for 8 minutes
-- Takes 5 minutes of Q&A
-- Demos their Hugging Face Space live
-
-Invite Seasons of Code organizers, alumni, and friends. Record the session.
+4. **Final presentation** (12-18 slides) walking through the project
 
 ### Stretch Goals
 - Submit the blog post to a publication (Medium's Towards Data Science, Hacker Noon)
 - Tweet a thread with samples and tag the diffusion research community
-- Apply the same techniques to a new task in the following months
 
 ---
 
-## Mentor's Toolkit
-
-### Recommended Mentor Prep (Before Program Starts)
-
-If you haven't built a diffusion model yourself recently, spend a weekend reproducing the Hugging Face "Annotated Diffusion Model" notebook. Your debugging instincts will be invaluable for mentees in Weeks 3–4.
-
-### Suggested Repo Template
+### Suggested Repo Template(tentative)
 
 Provide each mentee a starter template containing:
 
@@ -408,31 +287,6 @@ diffusion-soc-2026/
 └── checkpoints/
     └── (gitignored)
 ```
-
-### Weekly Check-in Form (5 Questions)
-
-1. Did you complete this week's deliverable? (Yes / Partial / No)
-2. How many hours did you spend? (number)
-3. What was the most confusing concept this week?
-4. What's blocking you from progressing? (free text)
-5. Rate your confidence with this week's material (1–5)
-
-### Red Flags to Watch For
-
-- A mentee skipping commits for 3+ days — reach out immediately
-- Asking only "how do I..." questions and never "why does..." — push them to read papers
-- Copying code from public diffusion repos verbatim — redirect to fundamentals
-- Spending too long on visual polish before the model works — set hard ordering: working model → demo → polish
-
-### Grading Rubric (If Required)
-
-| Component | Weight |
-|---|---|
-| Weekly deliverables (Weeks 1–7) | 50% |
-| Final demo and Hugging Face Space | 20% |
-| Technical blog post | 15% |
-| Code quality and documentation | 10% |
-| Final presentation | 5% |
 
 ---
 
@@ -461,34 +315,3 @@ diffusion-soc-2026/
 - openai/improved-diffusion
 
 ---
-
-## Appendix A: Sample Schedule for Mentees
-
-A suggested weekly time breakdown for the 8–12 hour commitment:
-
-- **2 hours:** Reading and watching resources
-- **4–6 hours:** Coding the deliverable
-- **1 hour:** Group call attendance
-- **1 hour:** Pair code review
-- **1–2 hours:** Debugging, polishing, writing README
-
----
-
-## Appendix B: Pitfall Recovery Guide
-
-If a mentee is stuck at the end of Week 4 with non-converging loss:
-1. Verify data is normalized to `[-1, 1]`
-2. Verify timestep embedding is being used in the forward pass
-3. Check learning rate (recommended: 1e-4 to 2e-4 for AdamW)
-4. Check that loss is computed against true noise, not the image
-5. Visualize a single noised sample at various timesteps to verify the scheduler
-
-If a mentee can't deploy to Hugging Face Spaces:
-1. Verify model weights are under 5GB (Spaces limit)
-2. Use `gradio` (not `streamlit`) for compatibility
-3. Test locally first with `gradio app.py`
-4. Check the Spaces logs for missing dependencies
-
----
-
-*Designed for the Seasons of Code 2026 program. Adapt freely to your cohort.*
