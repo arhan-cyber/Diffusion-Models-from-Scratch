@@ -30,7 +30,7 @@ from torch.cuda.amp import (
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-SAVE_EVERY = 10
+SAVE_EVERY = 1
 
 RESULTS_DIR = "results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -65,10 +65,10 @@ def compute_psnr(mse):
 # Visualization
 # ============================================================
 
-def save_samples(model, dataloader, epoch, device):
+def save_samples(model, sample_batch, epoch, device, save_dir):
     model.eval()
 
-    noisy_imgs, clean_imgs = next(iter(dataloader))
+    noisy_imgs, clean_imgs = sample_batch
 
     noisy_imgs = noisy_imgs.to(device)
     clean_imgs = clean_imgs.to(device)
@@ -82,25 +82,40 @@ def save_samples(model, dataloader, epoch, device):
 
     n_samples = min(5, noisy_imgs.size(0))
 
-    fig, axes = plt.subplots(n_samples, 3, figsize=(8, 2 * n_samples))
+    fig, axes = plt.subplots(
+        n_samples,
+        3,
+        figsize=(8, 2 * n_samples),
+        squeeze=False
+    )
 
     for i in range(n_samples):
 
+        noisy = noisy_imgs[i].squeeze().clamp(0, 1)
+        denoised = outputs[i].squeeze().clamp(0, 1)
+        clean = clean_imgs[i].squeeze().clamp(0, 1)
+
         axes[i, 0].imshow(
-            noisy_imgs[i].squeeze(),
-            cmap="gray"
+            noisy,
+            cmap="gray",
+            vmin=0,
+            vmax=1
         )
         axes[i, 0].set_title("Noisy")
 
         axes[i, 1].imshow(
-            outputs[i].squeeze(),
-            cmap="gray"
+            denoised,
+            cmap="gray",
+            vmin=0,
+            vmax=1
         )
         axes[i, 1].set_title("Denoised")
 
         axes[i, 2].imshow(
-            clean_imgs[i].squeeze(),
-            cmap="gray"
+            clean,
+            cmap="gray",
+            vmin=0,
+            vmax=1
         )
         axes[i, 2].set_title("Ground Truth")
 
@@ -110,12 +125,12 @@ def save_samples(model, dataloader, epoch, device):
     plt.tight_layout()
 
     save_path = os.path.join(
-        RESULTS_DIR,
-        f"samples_epoch_{epoch}.png"
+        save_dir,
+        f"samples_epoch_{epoch:03d}.png"
     )
 
     plt.savefig(save_path)
-    plt.close()
+    plt.close(fig)
 
     print(f"Saved samples to {save_path}")
 
@@ -125,7 +140,8 @@ def save_samples(model, dataloader, epoch, device):
 # ============================================================
 def save_loss_curve(
     train_losses,
-    val_losses
+    val_losses,
+    save_dir
 ):
     plt.figure(figsize=(8, 5))
 
@@ -150,7 +166,7 @@ def save_loss_curve(
     plt.grid(True)
 
     save_path = os.path.join(
-        RESULTS_DIR,
+        save_dir,
         "loss_curve.png"
     )
 
@@ -264,23 +280,28 @@ def train(config):
         noise_max=config.noise_max
     )
 
+    num_workers = min(4, os.cpu_count() or 1)
+    persistent_workers = num_workers > 0
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=config.batch_size,
         shuffle=True,
-        num_workers=2,
+        num_workers=num_workers,
         pin_memory=torch.cuda.is_available(),
-        persistent_workers=True
+        persistent_workers=persistent_workers
     )
 
     val_loader = DataLoader(
         val_dataset,
         batch_size=config.batch_size,
         shuffle=False,
-        num_workers=2,
+        num_workers=num_workers,
         pin_memory=torch.cuda.is_available(),
-        persistent_workers=True
+        persistent_workers=persistent_workers
     )
+
+    fixed_visual_batch = next(iter(val_loader))
 
     model = UNet(
         in_channels=config.in_channels,
@@ -446,12 +467,13 @@ def train(config):
         if epoch % SAVE_EVERY == 0:
             save_samples(
                 model,
-                train_loader,
+                fixed_visual_batch,
                 epoch,
-                DEVICE
+                DEVICE,
+                experiment_dir
             )
 
-    save_loss_curve(train_losses, val_losses)
+    save_loss_curve(train_losses, val_losses, experiment_dir)
 
     model_path = os.path.join(
         experiment_dir,
