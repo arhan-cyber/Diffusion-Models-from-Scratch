@@ -10,8 +10,8 @@ class UNet(nn.Module):
         self,
         in_channels=1,
         out_channels=1,
-        base_channels=64,
-        depth=4,
+        base_channels=32,
+        depth=3,
         use_skip_connections=True,
         use_batchnorm=True,
         final_activation=None
