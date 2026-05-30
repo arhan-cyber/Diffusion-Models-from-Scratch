@@ -1,6 +1,10 @@
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
+import csv
+import time
+import math
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -29,7 +33,15 @@ LEARNING_RATE = 1e-3
 EPOCHS = 50
 
 BASE_CHANNELS = 32
-DEPTH = 4
+DEPTH = 3
+
+USE_SKIP_CONNECTIONS = True
+USE_BATCHNORM = True
+
+FINAL_ACTIVATION = "sigmoid"
+# None
+# "sigmoid"
+# "tanh"
 
 NOISE_MIN = 0.05
 NOISE_MAX = 0.50
@@ -47,6 +59,22 @@ os.makedirs(
     CHECKPOINT_DIR,
     exist_ok=True
 )
+
+EXPERIMENT_LOG = os.path.join(
+    RESULTS_DIR,
+    "experiment_log.csv"
+)
+
+
+# ============================================================
+# PSNR Helper
+# ============================================================
+
+def compute_psnr(mse):
+    if mse <= 0:
+        return float("inf")
+
+    return 20 * math.log10(1.0) - 10 * math.log10(mse)
 
 
 # ============================================================
@@ -186,7 +214,11 @@ def validate(
 
             running_loss += loss.item()
 
-    return running_loss / len(dataloader)
+    val_loss = running_loss / len(dataloader)
+
+    psnr = compute_psnr(val_loss)
+
+    return val_loss, psnr
 
 
 # ============================================================
@@ -198,11 +230,11 @@ def train():
     transform = transforms.ToTensor()
 
     full_dataset = datasets.MNIST(
-    root="./data",
-    train=True,
-    download=True,
-    transform=transform
-)
+        root="./data",
+        train=True,
+        download=True,
+        transform=transform
+    )
 
     train_size = int(0.9 * len(full_dataset))
     val_size = len(full_dataset) - train_size
@@ -225,30 +257,41 @@ def train():
     )
 
     train_loader = DataLoader(
-    train_dataset,
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    num_workers=2,
-    pin_memory=torch.cuda.is_available(),
-    persistent_workers=True
-    
+        train_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_workers=2,
+        pin_memory=torch.cuda.is_available(),
+        persistent_workers=True
     )
 
     val_loader = DataLoader(
-    val_dataset,
-    batch_size=BATCH_SIZE,
-    shuffle=False,
-    num_workers=2,
-    pin_memory=torch.cuda.is_available(),
-    persistent_workers=True
+        val_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        num_workers=2,
+        pin_memory=torch.cuda.is_available(),
+        persistent_workers=True
     )
 
     model = UNet(
         in_channels=1,
         out_channels=1,
         base_channels=BASE_CHANNELS,
-        depth=DEPTH
+        depth=DEPTH,
+        use_skip_connections=USE_SKIP_CONNECTIONS,
+        use_batchnorm=USE_BATCHNORM,
+        final_activation=FINAL_ACTIVATION
     ).to(DEVICE)
+
+    print("\n==============================")
+    print("MODEL CONFIG")
+    print("==============================")
+
+    print(model.get_config())
+    print(f"Parameters: {model.num_parameters:,}")
+
+    print("==============================\n")
 
     criterion = nn.MSELoss()
 
@@ -258,16 +301,19 @@ def train():
     )
 
     scaler = GradScaler(
-    enabled=torch.cuda.is_available()
+        enabled=torch.cuda.is_available()
     )
 
     train_losses = []
     val_losses = []
+    epoch_times = []
 
     print(f"Training on {DEVICE}")
     best_val_loss = float("inf")
 
     for epoch in range(1, EPOCHS + 1):
+
+        epoch_start = time.time()
 
         model.train()
 
@@ -304,7 +350,6 @@ def train():
                 max_norm=1.0
             )
 
-
             scaler.step(optimizer)
             scaler.update()
 
@@ -314,12 +359,20 @@ def train():
             )
 
         avg_loss = running_loss / len(train_loader)
-        val_loss = validate(
+
+        epoch_time = time.time() - epoch_start
+        epoch_times.append(epoch_time)
+
+        num_samples = len(train_loader.dataset)
+        samples_per_sec = num_samples / epoch_time
+
+        val_loss, val_psnr = validate(
             model,
             val_loader,
             criterion,
             DEVICE
         )
+
         checkpoint_path = os.path.join(
             CHECKPOINT_DIR,
             f"epoch_{epoch:03d}.pth"
@@ -375,7 +428,10 @@ def train():
         print(
             f"Epoch [{epoch}/{EPOCHS}] "
             f"Train Loss: {avg_loss:.6f} "
-            f"Val Loss: {val_loss:.6f}"
+            f"Val Loss: {val_loss:.6f} "
+            f"PSNR: {val_psnr:.2f} dB "
+            f"Time: {epoch_time:.2f}s "
+            f"Samples/s: {samples_per_sec:.2f}"
         )
 
         if epoch % SAVE_EVERY == 0:
@@ -399,6 +455,48 @@ def train():
     )
 
     print(f"Model saved to {model_path}")
+
+    # --------------------------------------------------------
+    # CSV Experiment Log
+    # --------------------------------------------------------
+
+    file_exists = os.path.exists(
+        EXPERIMENT_LOG
+    )
+
+    with open(
+        EXPERIMENT_LOG,
+        "a",
+        newline=""
+    ) as f:
+
+        writer = csv.writer(f)
+
+        if not file_exists:
+
+            writer.writerow([
+                "depth",
+                "base_channels",
+                "skip_connections",
+                "batchnorm",
+                "final_activation",
+                "parameters",
+                "best_val_loss",
+                "best_psnr",
+                "avg_epoch_time"
+            ])
+
+        writer.writerow([
+            DEPTH,
+            BASE_CHANNELS,
+            USE_SKIP_CONNECTIONS,
+            USE_BATCHNORM,
+            FINAL_ACTIVATION,
+            model.num_parameters,
+            best_val_loss,
+            compute_psnr(best_val_loss),
+            sum(epoch_times) / len(epoch_times)
+        ])
 
 
 # ============================================================
