@@ -23,6 +23,10 @@ class UNet(nn.Module):
         self.use_batchnorm = use_batchnorm
         self.final_activation = final_activation
 
+        # Store constructor args for get_config() — don't re-derive from layers
+        self._in_channels = in_channels
+        self._base_channels = base_channels
+
         # Channel progression
         # Example:
         # base_channels=64, depth=4
@@ -111,9 +115,9 @@ class UNet(nn.Module):
     def get_config(self):
 
         return {
-            "in_channels": self.inc.block[0].in_channels,
+            "in_channels": self._in_channels,
             "out_channels": self.outc.out_channels,
-            "base_channels": self.outc.in_channels,
+            "base_channels": self._base_channels,
             "depth": self.depth,
             "use_skip_connections": self.use_skip_connections,
             "use_batchnorm": self.use_batchnorm,
