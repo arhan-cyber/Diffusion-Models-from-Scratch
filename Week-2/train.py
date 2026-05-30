@@ -13,6 +13,7 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 
 from model import UNet
+from config import EXPERIMENTS
 from dataset import NoisyDataset
 from tqdm import tqdm
 
@@ -28,23 +29,6 @@ from torch.cuda.amp import (
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-BATCH_SIZE = 64
-LEARNING_RATE = 1e-3
-EPOCHS = 50
-
-BASE_CHANNELS = 32
-DEPTH = 3
-
-USE_SKIP_CONNECTIONS = True
-USE_BATCHNORM = True
-
-FINAL_ACTIVATION = "sigmoid"
-# None
-# "sigmoid"
-# "tanh"
-
-NOISE_MIN = 0.05
-NOISE_MAX = 0.50
 
 SAVE_EVERY = 10
 
@@ -225,7 +209,31 @@ def validate(
 # Training
 # ============================================================
 
-def train():
+def train(config):
+    experiment_dir = os.path.join(
+        "results",
+        config.name
+    )
+
+    os.makedirs(
+        experiment_dir,
+        exist_ok=True
+    )
+
+    checkpoint_dir = os.path.join(
+        experiment_dir,
+        "checkpoints"
+    )
+
+    os.makedirs(
+        checkpoint_dir,
+        exist_ok=True
+    )
+
+    experiment_log = os.path.join(
+        "results",
+        "experiment_log.csv"
+    )
 
     transform = transforms.ToTensor()
 
@@ -246,19 +254,19 @@ def train():
 
     train_dataset = NoisyDataset(
         train_base,
-        noise_min=NOISE_MIN,
-        noise_max=NOISE_MAX
+        noise_min=config.noise_min,
+        noise_max=config.noise_max
     )
 
     val_dataset = NoisyDataset(
         val_base,
-        noise_min=NOISE_MIN,
-        noise_max=NOISE_MAX
+        noise_min=config.noise_min,
+        noise_max=config.noise_max
     )
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=config.batch_size,
         shuffle=True,
         num_workers=2,
         pin_memory=torch.cuda.is_available(),
@@ -267,7 +275,7 @@ def train():
 
     val_loader = DataLoader(
         val_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=config.batch_size,
         shuffle=False,
         num_workers=2,
         pin_memory=torch.cuda.is_available(),
@@ -275,13 +283,13 @@ def train():
     )
 
     model = UNet(
-        in_channels=1,
-        out_channels=1,
-        base_channels=BASE_CHANNELS,
-        depth=DEPTH,
-        use_skip_connections=USE_SKIP_CONNECTIONS,
-        use_batchnorm=USE_BATCHNORM,
-        final_activation=FINAL_ACTIVATION
+        in_channels=config.in_channels,
+        out_channels=config.out_channels,
+        base_channels=config.base_channels,
+        depth=config.depth,
+        use_skip_connections=config.use_skip_connections,
+        use_batchnorm=config.use_batchnorm,
+        final_activation=config.final_activation
     ).to(DEVICE)
 
     print("\n==============================")
@@ -297,7 +305,7 @@ def train():
 
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=LEARNING_RATE
+        lr=config.learning_rate
     )
 
     scaler = GradScaler(
@@ -311,7 +319,7 @@ def train():
     print(f"Training on {DEVICE}")
     best_val_loss = float("inf")
 
-    for epoch in range(1, EPOCHS + 1):
+    for epoch in range(1, config.epochs + 1):
 
         epoch_start = time.time()
 
@@ -321,7 +329,7 @@ def train():
 
         progress_bar = tqdm(
             train_loader,
-            desc=f"Epoch {epoch}/{EPOCHS}",
+            desc=f"{config.name} | Epoch {epoch}/{config.epochs}",
             leave=False
         )
 
@@ -374,12 +382,13 @@ def train():
         )
 
         checkpoint_path = os.path.join(
-            CHECKPOINT_DIR,
+            checkpoint_dir,
             f"epoch_{epoch:03d}.pth"
         )
 
         torch.save(
             {
+                "config": vars(config),
                 "epoch": epoch,
                 "model_state_dict":
                     model.state_dict(),
@@ -398,7 +407,7 @@ def train():
             best_val_loss = val_loss
 
             best_model_path = os.path.join(
-                RESULTS_DIR,
+                experiment_dir,
                 "best_model.pth"
             )
 
@@ -445,7 +454,7 @@ def train():
     save_loss_curve(train_losses, val_losses)
 
     model_path = os.path.join(
-        RESULTS_DIR,
+        experiment_dir,
         "unet_denoiser.pth"
     )
 
@@ -475,11 +484,14 @@ def train():
         if not file_exists:
 
             writer.writerow([
+                "experiment_name",
                 "depth",
                 "base_channels",
                 "skip_connections",
                 "batchnorm",
                 "final_activation",
+                "noise_min",
+                "noise_max",
                 "parameters",
                 "best_val_loss",
                 "best_psnr",
@@ -487,11 +499,14 @@ def train():
             ])
 
         writer.writerow([
-            DEPTH,
-            BASE_CHANNELS,
-            USE_SKIP_CONNECTIONS,
-            USE_BATCHNORM,
-            FINAL_ACTIVATION,
+            config.name,
+            config.depth,
+            config.base_channels,
+            config.use_skip_connections,
+            config.use_batchnorm,
+            config.final_activation,
+            config.noise_min,
+            config.noise_max,
             model.num_parameters,
             best_val_loss,
             compute_psnr(best_val_loss),
@@ -504,4 +519,12 @@ def train():
 # ============================================================
 
 if __name__ == "__main__":
-    train()
+
+    for config in EXPERIMENTS:
+
+        print("\n")
+        print("=" * 80)
+        print(f"RUNNING EXPERIMENT: {config.name}")
+        print("=" * 80)
+
+        train(config)
