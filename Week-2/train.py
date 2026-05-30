@@ -17,7 +17,7 @@ from config import EXPERIMENTS
 from dataset import NoisyDataset
 from tqdm import tqdm
 
-from torch.cuda.amp import (
+from torch.amp import (
     autocast,
     GradScaler
 )
@@ -203,6 +203,7 @@ def validate(
             )
 
             with autocast(
+                "cuda",
                 enabled=torch.cuda.is_available()
             ):
                 outputs = model(noisy_imgs)
@@ -330,6 +331,7 @@ def train(config):
     )
 
     scaler = GradScaler(
+        device="cuda",
         enabled=torch.cuda.is_available()
     )
 
@@ -362,6 +364,7 @@ def train(config):
             optimizer.zero_grad(set_to_none=True)
 
             with autocast(
+                "cuda",
                 enabled=torch.cuda.is_available()
             ):
                 outputs = model(noisy_imgs)
