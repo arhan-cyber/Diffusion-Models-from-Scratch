@@ -41,8 +41,8 @@ EXPERIMENTS = [
     ),
 
     ExperimentConfig(
-        name="depth5",
-        depth=5
+        name="depth3",
+        depth=3
     ),
 
     ExperimentConfig(
