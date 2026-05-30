@@ -1,0 +1,2 @@
+depth,base_channels,skip_connections,batchnorm,final_activation,parameters,best_val_loss,best_psnr,avg_epoch_time
+3,32,True,True,sigmoid,1947713,0.003273250057084605,24.85020815876304,8.960934796333312
