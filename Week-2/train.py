@@ -435,7 +435,7 @@ def train(config):
         val_losses.append(val_loss)
 
         print(
-            f"Epoch [{epoch}/{EPOCHS}] "
+            f"Epoch [{epoch}/{config.epochs}] "
             f"Train Loss: {avg_loss:.6f} "
             f"Val Loss: {val_loss:.6f} "
             f"PSNR: {val_psnr:.2f} dB "
