@@ -22,3 +22,12 @@ Week-2/__pycache__/dataset.cpython-312.pyc
 Week-2/__pycache__/model.cpython-312.pyc
 Week-3/__pycache__/scheduler.cpython-313.pyc
 Week-3/__pycache__/test_scheduler.cpython-313-pytest-9.0.3.pyc
+Week-3/data/cifar-10-python.tar.gz
+Week-3/data/cifar-10-batches-py/batches.meta
+Week-3/data/cifar-10-batches-py/data_batch_1
+Week-3/data/cifar-10-batches-py/data_batch_2
+Week-3/data/cifar-10-batches-py/data_batch_3
+Week-3/data/cifar-10-batches-py/data_batch_4
+Week-3/data/cifar-10-batches-py/data_batch_5
+Week-3/data/cifar-10-batches-py/readme.html
+Week-3/data/cifar-10-batches-py/test_batch
