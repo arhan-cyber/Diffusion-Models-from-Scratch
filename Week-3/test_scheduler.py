@@ -278,8 +278,8 @@ class TestDeviceHandling:
     def test_scheduler_on_cuda(self):
         """Verify scheduler initializes on CUDA if available."""
         scheduler = NoiseScheduler(device="cuda")
-        assert scheduler.device == torch.device("cuda")
-        assert scheduler.betas.device == torch.device("cuda")
+        assert scheduler.device.type == "cuda"
+        assert scheduler.betas.device.type == "cuda"
 
     @pytest.mark.skipif(
         not torch.cuda.is_available(),
@@ -288,13 +288,13 @@ class TestDeviceHandling:
     def test_scheduler_to_device(self):
         """Verify scheduler can be moved to different devices."""
         scheduler = NoiseScheduler(device="cpu")
-        assert scheduler.betas.device == torch.device("cpu")
+        assert scheduler.betas.device.type == "cpu"
         
         scheduler.to("cuda")
-        assert scheduler.betas.device == torch.device("cuda")
+        assert scheduler.betas.device.type == "cuda"
         
         scheduler.to("cpu")
-        assert scheduler.betas.device == torch.device("cpu")
+        assert scheduler.betas.device.type == "cpu"
 
     def test_add_noise_respects_device(self):
         """Verify add_noise respects the scheduler's device."""
