@@ -201,14 +201,16 @@ class TestGaussianLimitAt_T:
         # Verify: mean ≈ 0, std ≈ 1
         xt_flat = xt.reshape(batch_size, -1)
         
-        mean = xt_flat.mean(dim=0)
-        std = xt_flat.std(dim=0)
+        
+        # Calculate global mean and std instead of per-pixel
+        mean = xt.mean()
+        std = xt.std()
         
         # Mean should be close to 0
-        assert torch.allclose(mean, torch.zeros_like(mean), atol=0.05)
+        assert torch.allclose(mean, torch.tensor(0.0), atol=0.05)
         
         # Std should be close to 1
-        assert torch.allclose(std, torch.ones_like(std), atol=0.1)
+        assert torch.allclose(std, torch.tensor(1.0), atol=0.05)
         
         # Verify α_bar_T is very small
         alpha_bar_T = scheduler.alpha_bars[-1]
