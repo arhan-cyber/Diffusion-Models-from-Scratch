@@ -50,13 +50,16 @@ class NoiseScheduler:
                 beta_start,
                 beta_end,
             )
-            # betas[0] = 0.0
+            
+            # Force pure image at t=0
+            betas[0] = 0.0
             self.betas = betas
 
         elif schedule == "cosine":
             betas = self._cosine_beta_schedule()
 
-            # betas[0] = 0.0
+            # Force pure image at t=0
+            betas[0] = 0.0
             self.betas = betas
 
         else:
@@ -65,12 +68,13 @@ class NoiseScheduler:
                 f"Choose from ['linear', 'cosine']."
             )
 
+        # Updated validation to allow betas[0] == 0.0
         if not torch.all(
-            (self.betas > 0)
+            (self.betas >= 0)
             & (self.betas < 1)
         ):
             raise ValueError(
-                "All beta values must lie in (0, 1)."
+                "All beta values must lie in [0, 1)."
             )
 
         # -------------------------
@@ -100,8 +104,9 @@ class NoiseScheduler:
             1.0 - self.alpha_bars
         )
 
+        # Adding a small epsilon to prevent division by zero at t=0
         self.inv_sqrt_alphas = torch.rsqrt(
-            self.alphas
+            self.alphas + 1e-8
         )
 
     def _linear_beta_schedule(
