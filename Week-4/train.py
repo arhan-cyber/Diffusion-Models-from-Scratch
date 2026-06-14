@@ -6,9 +6,41 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm.auto import tqdm
-
+import matplotlib.pyplot as plt
 from model import UNet
 from diffusion import Diffusion
+
+def save_loss_curve(
+    loss_history,
+    output_path
+):
+    plt.figure(
+        figsize=(8, 5)
+    )
+
+    plt.plot(
+        loss_history
+    )
+
+    plt.xlabel(
+        "Epoch"
+    )
+
+    plt.ylabel(
+        "Loss"
+    )
+
+    plt.title(
+        "DDPM Training Loss"
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        output_path
+    )
+
+    plt.close()
 
 
 def get_device():
@@ -62,6 +94,13 @@ def train(
     checkpoint_dir.mkdir(
     exist_ok=True
     )
+    results_dir = Path(
+    "results"
+    )
+
+    results_dir.mkdir(
+    exist_ok=True
+    )
 
     dataloader = get_dataloader(
         batch_size=batch_size
@@ -93,6 +132,7 @@ def train(
         position=0,
     )
     best_loss = float("inf")
+    loss_history = []
 
     for epoch in epoch_bar:
 
@@ -151,6 +191,9 @@ def train(
             epoch_loss
             / len(dataloader)
         )
+        loss_history.append(
+            average_loss
+        )
         if average_loss < best_loss:
 
             best_loss = average_loss
@@ -206,10 +249,25 @@ def train(
         f"\nTraining completed "
         f"in {total_time:.1f}s"
     )
+    loss_curve_path = (
+        results_dir
+        / "loss_curve.png"
+    )
+
+    save_loss_curve(
+        loss_history,
+        loss_curve_path
+    )
+
+    print(
+        f"Saved loss curve: "
+        f"{loss_curve_path}"
+    )
 
 
 def main():
     train()
+    
 
 
 if __name__ == "__main__":
