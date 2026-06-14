@@ -1,5 +1,6 @@
 import time
 
+from pathlib import Path
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
@@ -54,6 +55,13 @@ def train(
     device = get_device()
 
     print(f"Using device: {device}")
+    checkpoint_dir = Path(
+    "checkpoints"
+    )
+
+    checkpoint_dir.mkdir(
+    exist_ok=True
+    )
 
     dataloader = get_dataloader(
         batch_size=batch_size
@@ -84,6 +92,7 @@ def train(
         desc="Training",
         position=0,
     )
+    best_loss = float("inf")
 
     for epoch in epoch_bar:
 
@@ -142,6 +151,35 @@ def train(
             epoch_loss
             / len(dataloader)
         )
+        if average_loss < best_loss:
+
+            best_loss = average_loss
+
+            checkpoint_path = (
+                checkpoint_dir
+                / "ddpm_mnist.pt"
+            )
+
+            torch.save(
+                model.state_dict(),
+                checkpoint_path
+            )
+
+            print(
+                f"Saved checkpoint: "
+                f"{checkpoint_path}"
+            )
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict":
+                        model.state_dict(),
+                    "optimizer_state_dict":
+                        optimizer.state_dict(),
+                    "loss": average_loss,
+                },
+                checkpoint_path
+            )
 
         epoch_time = (
             time.time()
