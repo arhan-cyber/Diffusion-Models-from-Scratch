@@ -3,14 +3,15 @@ import torch
 
 class Diffusion:
     """
-    Implements the forward diffusion process used during DDPM training.
+    DDPM diffusion process implementation.
 
-    References:
-        - DDPM Paper (Ho et al., 2020)
-        - Algorithm 1
-        - Equation:
-            x_t = sqrt(alpha_hat_t) * x_0
-                  + sqrt(1 - alpha_hat_t) * epsilon
+    Supports:
+    - Algorithm 1 (training / forward diffusion)
+    - Algorithm 2 (sampling / reverse diffusion)
+
+    Reference:
+        Denoising Diffusion Probabilistic Models
+        Ho et al., 2020
     """
 
     def __init__(
@@ -25,9 +26,14 @@ class Diffusion:
         self.beta_end = beta_end
         self.device = device
 
-        self.beta = self.prepare_noise_schedule().to(device)
+        self.beta = (
+            self.prepare_noise_schedule()
+            .to(device)
+        )
 
-        self.alpha = 1.0 - self.beta
+        self.alpha = (
+            1.0 - self.beta
+        )
 
         self.alpha_hat = torch.cumprod(
             self.alpha,
@@ -50,10 +56,11 @@ class Diffusion:
         batch_size
     ):
         """
-        Sample timesteps uniformly from [1, T).
+        Sample timesteps uniformly.
 
         Corresponds to:
-            t ~ Uniform({1, ..., T})
+
+            t ~ Uniform({1,...,T})
         """
 
         return torch.randint(
@@ -71,9 +78,16 @@ class Diffusion:
         """
         Sample x_t from q(x_t | x_0).
 
+        Equation:
+
+            x_t =
+                sqrt(alpha_hat_t) * x_0
+                +
+                sqrt(1 - alpha_hat_t) * epsilon
+
         Returns:
             x_t
-            noise
+            epsilon
         """
 
         noise = torch.randn_like(x)
@@ -88,7 +102,134 @@ class Diffusion:
 
         x_t = (
             sqrt_alpha_hat * x
-            + sqrt_one_minus_alpha_hat * noise
+            +
+            sqrt_one_minus_alpha_hat * noise
         )
 
         return x_t, noise
+
+    @torch.no_grad()
+    def sample(
+        self,
+        model,
+        n,
+        image_size=28,
+        channels=1
+    ):
+        """
+        Generate samples using DDPM Algorithm 2.
+
+        Args:
+            model:
+                Trained UNet.
+
+            n:
+                Number of samples to generate.
+
+            image_size:
+                Image height/width.
+
+            channels:
+                Number of image channels.
+
+        Returns:
+            Tensor of generated images
+            in [0, 1].
+        """
+
+        model.eval()
+
+        x = torch.randn(
+            n,
+            channels,
+            image_size,
+            image_size,
+            device=self.device
+        )
+
+        for timestep in reversed(
+            range(
+                1,
+                self.noise_steps
+            )
+        ):
+
+            t = torch.full(
+                (n,),
+                timestep,
+                device=self.device,
+                dtype=torch.long
+            )
+
+            predicted_noise = model(
+                x,
+                t
+            )
+
+            alpha = self.alpha[t]
+            alpha_hat = self.alpha_hat[t]
+            beta = self.beta[t]
+
+            alpha = alpha[
+                :,
+                None,
+                None,
+                None
+            ]
+
+            alpha_hat = alpha_hat[
+                :,
+                None,
+                None,
+                None
+            ]
+
+            beta = beta[
+                :,
+                None,
+                None,
+                None
+            ]
+
+            if timestep > 1:
+                noise = torch.randn_like(x)
+            else:
+                noise = torch.zeros_like(x)
+
+            x = (
+                (
+                    1.0
+                    / torch.sqrt(alpha)
+                )
+                *
+                (
+                    x
+                    -
+                    (
+                        (
+                            1.0 - alpha
+                        )
+                        /
+                        torch.sqrt(
+                            1.0 - alpha_hat
+                        )
+                    )
+                    *
+                    predicted_noise
+                )
+                +
+                torch.sqrt(beta)
+                *
+                noise
+            )
+
+        model.train()
+
+        # Convert from [-1, 1]-ish range
+        # back into [0, 1] for visualization.
+        x = (
+            x.clamp(-1, 1)
+            + 1
+        ) / 2
+
+        return x
