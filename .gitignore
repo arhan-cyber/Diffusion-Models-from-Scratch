@@ -34,3 +34,6 @@ Week-3/data/cifar-10-batches-py/test_batch
 Week-4/__pycache__/blocks.cpython-311.pyc
 Week-4/__pycache__/model.cpython-311.pyc
 Week-4/__pycache__/embeddings.cpython-311.pyc
+Week-4/tests/__pycache__/test_diffusion.cpython-311-pytest-9.1.0.pyc
+Week-4/tests/__pycache__/test_ddpm_training.cpython-311-pytest-9.1.0.pyc
+Week-4/__pycache__/diffusion.cpython-311.pyc
