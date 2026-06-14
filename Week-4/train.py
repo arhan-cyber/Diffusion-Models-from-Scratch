@@ -1,5 +1,5 @@
 import time
-
+from torchvision.utils import save_image
 from pathlib import Path
 import torch
 import torch.nn.functional as F
@@ -9,6 +9,36 @@ from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
 from model import UNet
 from diffusion import Diffusion
+
+def save_samples(
+    model,
+    diffusion,
+    epoch,
+    results_dir,
+    num_samples=64
+):
+    samples = diffusion.sample(
+        model=model,
+        n=num_samples,
+        image_size=28,
+        channels=1
+    )
+
+    output_path = (
+        results_dir
+        / f"samples_epoch_{epoch}.png"
+    )
+
+    save_image(
+        samples,
+        output_path,
+        nrow=8
+    )
+
+    print(
+        f"Saved samples: "
+        f"{output_path}"
+    )
 
 def save_loss_curve(
     loss_history,
@@ -83,6 +113,7 @@ def train(
     batch_size=128,
     learning_rate=1e-4,
     noise_steps=1000,
+    sample_every=10
 ):
     device = get_device()
 
@@ -135,6 +166,7 @@ def train(
     loss_history = []
 
     for epoch in epoch_bar:
+
 
         epoch_start = time.time()
         epoch_loss = 0.0
@@ -239,6 +271,17 @@ def train(
             f"Loss: {average_loss:.6f} "
             f"Time: {epoch_time:.1f}s"
         )
+        if (
+            (epoch + 1)
+            % sample_every
+            == 0
+        ):
+            save_samples(
+                model=model,
+                diffusion=diffusion,
+                epoch=epoch + 1,
+                results_dir=results_dir
+            )
 
     total_time = (
         time.time()
@@ -262,6 +305,12 @@ def train(
     print(
         f"Saved loss curve: "
         f"{loss_curve_path}"
+    )
+    save_samples(
+        model=model,
+        diffusion=diffusion,
+        epoch="final",
+        results_dir=results_dir
     )
 
 
