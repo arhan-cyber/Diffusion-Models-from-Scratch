@@ -1,0 +1,148 @@
+import torch
+import torch.nn as nn
+
+from blocks import DoubleConv, Down, Up
+from embeddings import TimeEmbedding
+
+
+class UNet(nn.Module):
+
+    def __init__(
+        self,
+        in_channels=1,
+        out_channels=1,
+        base_channels=32,
+        depth=3,
+        emb_dim=256,
+        use_skip_connections=True,
+        use_batchnorm=True,
+        final_activation=None
+    ):
+        super().__init__()
+        self.time_embedding = TimeEmbedding(emb_dim=emb_dim)
+        self.depth = depth
+        self.use_skip_connections = use_skip_connections
+        self.use_batchnorm = use_batchnorm
+        self.final_activation = final_activation
+
+        # Store constructor args for get_config() — don't re-derive from layers
+        self._in_channels = in_channels
+        self._base_channels = base_channels
+
+        # Channel progression
+        # Example:
+        # base_channels=64, depth=4
+        # [64, 128, 256, 512, 1024]
+        channels = [
+            base_channels * (2 ** i)
+            for i in range(depth + 1)
+        ]
+
+        # Initial convolution block
+        self.inc = DoubleConv(
+            in_channels=in_channels,
+            out_channels=channels[0],
+            emb_dim=emb_dim,
+            use_batchnorm=use_batchnorm
+        )
+
+        # Encoder
+        self.downs = nn.ModuleList()
+
+        for i in range(depth):
+            self.downs.append(
+                Down(
+                    in_channels=channels[i],
+                    out_channels=channels[i + 1],
+                    emb_dim=emb_dim,
+                    use_batchnorm=use_batchnorm
+                )
+            )
+
+        # Decoder
+        self.ups = nn.ModuleList()
+
+        for i in reversed(range(depth)):
+
+            self.ups.append(
+                Up(
+                    decoder_channels=channels[i + 1],
+                    skip_channels=channels[i],
+                    out_channels=channels[i],
+                    emb_dim=emb_dim,
+                    use_skip_connections=use_skip_connections,
+                    use_batchnorm=use_batchnorm
+                )
+            )
+        
+
+        #Store the timestep embedding dimensions
+        self.emb_dim = emb_dim
+        self._emb_dim = emb_dim
+
+        # Final projection
+        self.outc = nn.Conv2d(
+            channels[0],
+            out_channels,
+            kernel_size=1
+        )
+
+    def forward(self, x, t):
+        # Compute timestep embeddings
+        t_emb = self.time_embedding(t)
+
+        skips = []
+
+        # Encoder
+        x = self.inc(x, t_emb)
+        skips.append(x)
+
+        for down in self.downs:
+            x = down(x, t_emb)
+            skips.append(x)
+
+        # Remove bottleneck feature map
+        skips = skips[:-1][::-1]
+
+        # Decoder
+        for up, skip in zip(self.ups, skips):
+
+            x = up(
+                x,
+                skip if self.use_skip_connections else None,
+                t_emb
+            )
+
+        # Output projection
+        x = self.outc(x)
+
+        # Optional final activation
+        if self.final_activation == "sigmoid":
+            x = torch.sigmoid(x)
+
+        elif self.final_activation == "tanh":
+            x = torch.tanh(x)
+
+        return x
+
+    def get_config(self):
+
+        return {
+            "in_channels": self._in_channels,
+            "out_channels": self.outc.out_channels,
+            "base_channels": self._base_channels,
+            "depth": self.depth,
+            "use_skip_connections": self.use_skip_connections,
+            "use_batchnorm": self.use_batchnorm,
+            "final_activation": self.final_activation,
+            "emb_dim": self._emb_dim
+        }
+
+    @property
+    def num_parameters(self):
+
+        return sum(
+            p.numel()
+            for p in self.parameters()
+            if p.requires_grad
+        )
