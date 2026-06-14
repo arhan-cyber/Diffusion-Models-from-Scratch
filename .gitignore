@@ -37,3 +37,11 @@ Week-4/__pycache__/embeddings.cpython-311.pyc
 Week-4/tests/__pycache__/test_diffusion.cpython-311-pytest-9.1.0.pyc
 Week-4/tests/__pycache__/test_ddpm_training.cpython-311-pytest-9.1.0.pyc
 Week-4/__pycache__/diffusion.cpython-311.pyc
+Week-4/data/MNIST/raw/t10k-images-idx3-ubyte.gz
+Week-4/data/MNIST/raw/train-images-idx3-ubyte.gz
+Week-4/data/MNIST/raw/train-images-idx3-ubyte
+Week-4/data/MNIST/raw/t10k-labels-idx1-ubyte.gz
+Week-4/data/MNIST/raw/t10k-labels-idx1-ubyte
+Week-4/data/MNIST/raw/t10k-images-idx3-ubyte
+Week-4/data/MNIST/raw/train-labels-idx1-ubyte.gz
+Week-4/data/MNIST/raw/train-labels-idx1-ubyte
