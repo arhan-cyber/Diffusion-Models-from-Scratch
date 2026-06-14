@@ -113,7 +113,7 @@ def train(
     batch_size=128,
     learning_rate=1e-4,
     noise_steps=1000,
-    sample_every=10
+    sample_every=2
 ):
     device = get_device()
 
