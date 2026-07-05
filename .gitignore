@@ -48,3 +48,8 @@ Week-4/data/MNIST/raw/train-labels-idx1-ubyte
 Week-4/checkpoints/ddpm_mnist.pt
 Week-4/diffusion.py
 Week-4/tests/__pycache__/test_sample.cpython-311-pytest-9.1.0.pyc
+Week-4/__pycache__/blocks.cpython-312.pyc
+Week-4/__pycache__/diffusion.cpython-312.pyc
+Week-4/__pycache__/embeddings.cpython-312.pyc
+Week-4/__pycache__/model.cpython-312.pyc
+Week-5/__pycache__/ddim_scheduler.cpython-312.pyc
