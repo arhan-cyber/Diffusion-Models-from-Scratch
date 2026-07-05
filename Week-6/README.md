@@ -16,13 +16,13 @@ Random generation is a parlor trick. Controlled generation is what makes diffusi
 
 ## Deliverable Checklist
 
-- [ ] **Label embeddings** added alongside timestep embeddings
-- [ ] **Random label dropout** (10–20%) during training for CFG support
-- [ ] CFG sampling with adjustable guidance scale `w`
-- [ ] Sample grid: **same noise vector → different classes** (proves conditioning works)
-- [ ] Sample grid: **same class with `w = 1, 3, 5, 10`** (proves CFG works)
-- [ ] Verify ~15% of training batches use the null label (print a debug line)
-- [ ] Code pushed to GitHub with updated README
+- [x] **Label embeddings** added alongside timestep embeddings
+- [x] **Random label dropout** (10–20%) during training for CFG support
+- [x] CFG sampling with adjustable guidance scale `w`
+- [x] Sample grid: **same noise vector → different classes** (proves conditioning works)
+- [x] Sample grid: **same class with `w = 1, 3, 5, 10`** (proves CFG works)
+- [x] Verify ~15% of training batches use the null label (print a debug line)
+- [x] Code pushed to GitHub with updated README
 
 ## Folder Structure
 
