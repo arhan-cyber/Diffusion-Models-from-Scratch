@@ -204,7 +204,7 @@ Speaker Notes:
 ## 📊 Implementation: EMNIST Letters Pipeline
 
 * **Dataset Scale:** EMNIST Letters split (~124,800 images, $28 \times 28$ grayscale, 26 classes A–Z).
-* **Transposition Correction:** Standard EMNIST is stored rotated and mirrored. Corrected in [dataset.py](./dataset.py) using:
+* **Transposition Correction:** Standard EMNIST is stored rotated and mirrored. Corrected in `dataset.py` using:
   `transforms.Lambda(lambda img: img.transpose(PIL.Image.TRANSPOSE))`
 * **Label Alignment:** Shifted 1-indexed EMNIST labels (1–26) to 0-indexed classes (0–25).
 * **Geometric Augmentation:** Random rotations ($\pm 10^\circ$) and translations ($10\%$). Flips were disabled to avoid letter corruption (e.g. 'b' to 'd').
@@ -244,51 +244,30 @@ Speaker Notes:
 
 ---
 
-## 📈 Results: Training Loss Curves
+## 📈 Results: Loss Curves and Sample Generation
 
 <div class="columns">
 <div>
 
-### Loss History
+### Loss History & Convergence
 * Steady, smooth MSE loss decay indicating consistent training.
 * Stabilized around **0.034** after epoch 5.
-* Training log: [experiment_log.csv](./results/experiment_log.csv)
+* Training log: `experiment_log.csv`
+
+### Sample Generation
+* Legible shapes for characters A–Z at epoch 25.
+* Clean boundaries matching handwriting.
 </div>
 <div>
 
-### Training Progress
+### Visual Progress
 ![Training curves](./results/training_curves.png)
 </div>
 </div>
 
 <!-- 
 Speaker Notes:
-"This slide displays our training curves. The MSE loss decreased steadily and stabilized at around 0.034. Because we used a learning rate of 1e-4 and a batch size of 128, the training process was highly stable, with no divergence issues."
--->
-
----
-
-## 🏆 Results: Generated Letter Grid (Epoch 25)
-
-<div class="columns">
-<div>
-
-### Model Achievements
-* Successfully generated readable shapes for characters A–Z.
-* Reconstructed clean glyph boundaries.
-* Preserved standard handwriting structure.
-* Output reference: [samples_epoch_25.png](./results/samples_epoch_25.png)
-</div>
-<div>
-
-### Generative Gallery
-![A-Z Grid](./results/samples_epoch_25.png)
-</div>
-</div>
-
-<!-- 
-Speaker Notes:
-"This slide displays our generated samples at Epoch 25. The model successfully learned to write letters A through Z. The letters are legible, showing that class-conditioning successfully steers the generation toward distinct characters."
+"This slide displays our training curves and generated samples. The MSE loss decreased steadily and stabilized around 0.034. Because we used a stable learning rate and batch size, convergence was smooth. By epoch 25, the model generates readable, distinct A-Z characters."
 -->
 
 ---
