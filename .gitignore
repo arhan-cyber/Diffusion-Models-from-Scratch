@@ -56,4 +56,20 @@ Week-5/__pycache__/ddim_scheduler.cpython-312.pyc
 Week-6/__pycache__/blocks.cpython-312.pyc
 Week-6/__pycache__/embeddings.cpython-312.pyc
 Week-6/__pycache__/model.cpython-312.pyc
-Week-6/__pycache__/diffusion.cpython-312.pyc
+
+# Generic Python Cache files
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Training Checkpoints and Model Weights
+**/checkpoints/
+*.pt
+*.pth
+
+# Downloaded Datasets (MNIST, EMNIST, etc.)
+**/data/
+
+# Weights & Biases folders
+**/wandb/
