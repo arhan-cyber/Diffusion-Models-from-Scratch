@@ -22,6 +22,7 @@ def get_args():
     parser.add_argument("--batch-size", type=int, default=None, help="Override batch size")
     parser.add_argument("--lr", type=float, default=None, help="Override learning rate")
     parser.add_argument("--wandb", action="store_true", help="Enable W&B logging")
+    parser.add_argument("--wandb-key", type=str, default=None, help="Weights & Biases API Key for programmatic login")
     parser.add_argument("--run-name", type=str, default=None, help="Optional run name for logging")
     return parser.parse_args()
 
@@ -76,11 +77,13 @@ def main():
     checkpoint_dir.mkdir(exist_ok=True)
     
     # Initialize logger
-    use_wandb = args.wandb or config["training"].get("use_wandb", False)
+    use_wandb = args.wandb or config["training"].get("use_wandb", False) or (args.wandb_key is not None)
     wandb_run = None
     if use_wandb:
         try:
             import wandb
+            if args.wandb_key:
+                wandb.login(key=args.wandb_key)
             # Check authentication
             if wandb.api.api_key is None:
                 print("Weights & Biases API Key not found. Falling back to local logging.")
