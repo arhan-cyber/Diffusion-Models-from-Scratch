@@ -42,7 +42,7 @@ def save_samples(model, diffusion, epoch, results_dir, device):
     output_path = results_dir / f"samples_epoch_{epoch}.png"
     save_image(samples, output_path, nrow=7)
     print(f"Saved epoch {epoch} generation samples to {output_path}")
-    return samples
+    return samples, output_path
 
 def save_loss_curve(loss_history, output_path):
     import matplotlib.pyplot as plt
@@ -195,12 +195,11 @@ def main():
                 "epoch": epoch + 1
             })
             
-        # Periodically sample visual outputs
         if (epoch + 1) % sample_every == 0 or (epoch + 1) == epochs:
-            samples = save_samples(model, diffusion, epoch + 1, results_dir, device)
+            samples, sample_path = save_samples(model, diffusion, epoch + 1, results_dir, device)
             if use_wandb:
                 # Log samples to W&B
-                images_logged = wandb.Image(samples, caption=f"Epoch {epoch + 1} Generations")
+                images_logged = wandb.Image(str(sample_path), caption=f"Epoch {epoch + 1} Generations")
                 wandb.log({"samples": images_logged})
                 
         # Periodically save checkpoints
